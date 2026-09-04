@@ -1,9 +1,18 @@
+# What NOT to put in the runtime image.
+# Tests and reference material are uploaded to the builder (see
+# .gcloudignore) but must never ship.
 .git/
+.gitignore
 .venv/
 .venv.nosync/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.DS_Store
 resources/
 tests/
 docs/
+README.md
+requirements-dev.txt
+pytest.ini
+cloudbuild.yaml

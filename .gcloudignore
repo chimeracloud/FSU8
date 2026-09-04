@@ -1,3 +1,16 @@
+# What NOT to upload to Cloud Build.
+#
+# This is the BUILD CONTEXT, not the image. `cloudbuild.yaml` runs the
+# test suite as build step 0, so tests/, pytest.ini and
+# requirements-dev.txt MUST be uploaded — excluding them here made the
+# first build fail with "Could not open requirements file:
+# requirements-dev.txt".
+#
+# Keeping tests and reference material OUT OF THE IMAGE is
+# `.dockerignore`'s job, and it does exactly that. The shell spec's
+# instruction to exclude resources/, tests/ and docs/ assumes a
+# source-based deploy where the upload becomes the image; with a
+# cloudbuild.yaml that tests before it builds, the two lists differ.
 .git/
 .gitignore
 .venv/
@@ -5,9 +18,4 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
-resources/
-tests/
-docs/
-README.md
-requirements-dev.txt
-pytest.ini
+.DS_Store
