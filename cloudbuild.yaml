@@ -1,0 +1,85 @@
+# Cloud Build pipeline for Chimera Live Betting Control.
+#
+# ── READ THIS BEFORE CREATING THE TRIGGER ───────────────────────────
+# The GitHub trigger MUST be created with `--build-config=cloudbuild.yaml`
+# so that it uses THIS file.
+#
+# FSU1B's trigger was created by the Cloud Run "continuously deploy from
+# a repository" wizard, which writes its own inline build whose deploy
+# step is `gcloud run services update --image --labels`. That updates
+# the image and nothing else. FSU1B ran for three months on
+# min-instances=0 / max-instances=20 / CPU-throttled while its
+# cloudbuild.yaml specified 1/1/no-throttling, and nothing surfaced the
+# divergence because the build went green either way.
+#
+# Do not create this trigger through the wizard.
+# ────────────────────────────────────────────────────────────────────
+
+substitutions:
+  _REGION: europe-west2
+  _SERVICE: fsu1bv2-betting-control
+  _SA: fsu1bv2-sa@chiops.iam.gserviceaccount.com
+  _IMAGE: europe-west2-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/fsu1bv2
+
+steps:
+  - id: test
+    name: python:3.12-slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        pip install -q -r requirements-dev.txt
+        BC_DISABLE_GCP_IO=1 python -m pytest -q
+
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args: [build, -t, "${_IMAGE}:${SHORT_SHA}", -t, "${_IMAGE}:main", .]
+
+  - id: push-sha
+    name: gcr.io/cloud-builders/docker
+    args: [push, "${_IMAGE}:${SHORT_SHA}"]
+
+  - id: push-main
+    name: gcr.io/cloud-builders/docker
+    args: [push, "${_IMAGE}:main"]
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_IMAGE}:${SHORT_SHA}
+      - --region=${_REGION}
+      - --project=${PROJECT_ID}
+      - --service-account=${_SA}
+      # CHI-POL-004. Browser access is via the cst-api portal proxy only.
+      - --no-allow-unauthenticated
+      # Traceability: which commit is serving, readable from
+      # `gcloud run services describe`.
+      - --labels=managed-by=cloud-build,commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID
+      # min=1: a bet request must not pay a cold start.
+      # max=1: bet state is held in-process; a second instance would
+      #        answer GET /bets from a different, incomplete view.
+      - --min-instances=1
+      - --max-instances=1
+      - --cpu=1
+      - --memory=512Mi
+      - --cpu-boost
+      # Background bet-status polling (Phase 2) runs between requests.
+      - --no-cpu-throttling
+      - --port=8080
+      # Deploy-time identity only — never a tunable setting.
+      # --update-env-vars MERGES; --set-env-vars would REPLACE the whole
+      # block and wipe SERVICE_URL, which is set once after the first
+      # deploy (the URL is not knowable before the service exists).
+      - --update-env-vars=GCP_PROJECT=${PROJECT_ID},BUILD_SHA=$COMMIT_SHA
+
+images:
+  - ${_IMAGE}:${SHORT_SHA}
+  - ${_IMAGE}:main
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
