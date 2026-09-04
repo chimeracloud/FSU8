@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True)
 class Settings:
     # ── Identity ────────────────────────────────────────────────────
-    service_name: str = "fsu1bv2-betting-control"
+    service_name: str = "fsu8-betting-control"
     region: str = "europe-west2"
     gcp_project: str = "chiops"
 
@@ -60,12 +60,12 @@ class Settings:
 
     # ── GCS ─────────────────────────────────────────────────────────
     config_bucket: str = "chiops-betfair-recording"
-    config_blob: str = "config/betting_control.json"
+    config_blob: str = "config/fsu8.json"
     manifest_bucket: str = "chimera-portal-config"
     manifest_blob: str = "source_manifest.json"
 
     # ── Events (Bible §20) ──────────────────────────────────────────
-    events_topic: str = "chimera-events"
+    events_topic: str = "chimera-fsu8-events"
 
 
 _lock = RLock()
@@ -124,7 +124,7 @@ def apply_dict(payload: dict[str, Any]) -> Settings:
 
 def _disabled() -> bool:
     """When set, all GCP I/O is skipped — used by tests and local dev."""
-    return bool(os.environ.get("BC_DISABLE_GCP_IO"))
+    return bool(os.environ.get("FSU8_DISABLE_GCP_IO"))
 
 
 def load_config_from_gcs() -> dict[str, Any]:
@@ -134,7 +134,7 @@ def load_config_from_gcs() -> dict[str, Any]:
     Unreachable GCS -> warn and keep in-memory defaults.
     """
     if _disabled():
-        logger.info("BC_DISABLE_GCP_IO set — skipping GCS config load.")
+        logger.info("FSU8_DISABLE_GCP_IO set — skipping GCS config load.")
         return settings_to_dict()
 
     s = get_settings()
@@ -175,7 +175,7 @@ def save_config_to_gcs(payload: dict[str, Any]) -> bool:
     apply_dict(payload)
 
     if _disabled():
-        logger.info("BC_DISABLE_GCP_IO set — skipping GCS config save.")
+        logger.info("FSU8_DISABLE_GCP_IO set — skipping GCS config save.")
         return True
 
     s = get_settings()

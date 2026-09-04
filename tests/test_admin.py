@@ -12,7 +12,7 @@ from core.events import app_state
 
 def test_status_reports_identity_and_state(client):
     body = client.get("/admin/status").json()
-    assert body["service"] == "fsu1bv2-betting-control"
+    assert body["service"] == "fsu8-betting-control"
     assert body["phase"] == 1
     assert body["service_state"] == "stopped"
     assert body["uptime_s"] >= 0

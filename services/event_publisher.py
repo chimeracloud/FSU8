@@ -8,7 +8,7 @@ Envelope (locked by Bible §20):
 
     {
       "envelope": {
-        "source":     "fsu1bv2-betting-control",
+        "source":     "fsu8-betting-control",
         "event_type": "control_started",
         "timestamp":  "<UTC iso>",
         "version":    "1.0"
@@ -19,7 +19,7 @@ Envelope (locked by Bible §20):
 Phase 1 fires lifecycle events only. Bet events belong to Phase 2 and
 are not declared here — no placeholder types.
 
-Topic: `Settings.events_topic`, default `chimera-events` per the build
+Topic: `Settings.events_topic`, default `chimera-fsu8-events` per the build
 brief. **That topic does not exist in chiops.** The convention in the
 project is per-service (`chimera-fsu1b-events`,
 `chimera-fsu100v2-events`), so either the shared topic gets created or
@@ -55,7 +55,7 @@ _publisher_disabled = False
 
 
 def _disabled() -> bool:
-    return bool(os.environ.get("BC_DISABLE_GCP_IO"))
+    return bool(os.environ.get("FSU8_DISABLE_GCP_IO"))
 
 
 def build_envelope(event_type: str, payload: dict[str, Any] | None) -> dict[str, Any]:
@@ -106,7 +106,7 @@ async def publish(event_type: str, payload: dict[str, Any] | None = None) -> dic
         pass
 
     if _disabled():
-        logger.info("BC_DISABLE_GCP_IO set — envelope not published: %s", event_type)
+        logger.info("FSU8_DISABLE_GCP_IO set — envelope not published: %s", event_type)
         return envelope
 
     pub = _get_publisher()

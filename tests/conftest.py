@@ -1,7 +1,7 @@
 """
 Shared fixtures.
 
-Test-mode safety: `BC_DISABLE_GCP_IO` is set at module load, BEFORE any
+Test-mode safety: `FSU8_DISABLE_GCP_IO` is set at module load, BEFORE any
 project module is imported, so the lifespan's GCS and Pub/Sub calls
 short-circuit. Without it every test would hit real GCP, run orders of
 magnitude slower, and risk writing to the production config blob and
@@ -10,7 +10,7 @@ the shared Source Manifest.
 import os
 
 # CRITICAL: set BEFORE anything imports our modules.
-os.environ.setdefault("BC_DISABLE_GCP_IO", "1")
+os.environ.setdefault("FSU8_DISABLE_GCP_IO", "1")
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402

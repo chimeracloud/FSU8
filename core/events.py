@@ -84,7 +84,7 @@ class AppState:
         self.request_count += 1
         # /ready returns 503 BY DESIGN while a dependency is
         # unconfigured. Counting that as a server error makes
-        # bc_errors_total climb on a perfectly healthy service and
+        # fsu8_errors_total climb on a perfectly healthy service and
         # trains the operator to ignore the metric. Every other path's
         # 5xx is a real error and is counted.
         if status_code >= 500 and path != "/ready":

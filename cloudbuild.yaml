@@ -17,9 +17,9 @@
 
 substitutions:
   _REGION: europe-west2
-  _SERVICE: fsu1bv2-betting-control
-  _SA: fsu1bv2-sa@chiops.iam.gserviceaccount.com
-  _IMAGE: europe-west2-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/fsu1bv2
+  _SERVICE: fsu8-betting-control
+  _SA: fsu8-sa@chiops.iam.gserviceaccount.com
+  _IMAGE: europe-west2-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/fsu8
 
 steps:
   - id: test
@@ -29,7 +29,7 @@ steps:
       - -c
       - |
         pip install -q -r requirements-dev.txt
-        BC_DISABLE_GCP_IO=1 python -m pytest -q
+        FSU8_DISABLE_GCP_IO=1 python -m pytest -q
 
   - id: build
     name: gcr.io/cloud-builders/docker

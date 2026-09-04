@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 # Manifest key. Distinct from the Cloud Run service name so the entry
 # stays stable if the service is ever renamed.
-MANIFEST_KEY = "betting_control"
+MANIFEST_KEY = "fsu8"
 
 ENDPOINTS: dict[str, str] = {
     "admin_status": "/admin/status",
@@ -45,7 +45,7 @@ ENDPOINTS: dict[str, str] = {
 
 
 def _disabled() -> bool:
-    return bool(os.environ.get("BC_DISABLE_GCP_IO"))
+    return bool(os.environ.get("FSU8_DISABLE_GCP_IO"))
 
 
 def build_manifest_entry() -> dict[str, Any]:
@@ -67,7 +67,7 @@ def register() -> dict[str, Any]:
     """Read, merge our entry, write back. Raises on GCS failure."""
     entry = build_manifest_entry()
     if _disabled():
-        logger.info("BC_DISABLE_GCP_IO set — returning entry without GCS write.")
+        logger.info("FSU8_DISABLE_GCP_IO set — returning entry without GCS write.")
         return entry
 
     s = get_settings()

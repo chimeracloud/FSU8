@@ -116,7 +116,7 @@ def test_settings_round_trip_through_the_gcs_payload():
 def test_gcs_load_degrades_to_defaults_when_disabled():
     """A missing GCS must leave the admin surface serving."""
     applied = load_config_from_gcs()
-    assert applied["service_name"] == "fsu1bv2-betting-control"
+    assert applied["service_name"] == "fsu8-betting-control"
 
 
 # ── Structured logging ──────────────────────────────────────────────
@@ -129,7 +129,7 @@ def test_log_entries_carry_service_name_trace_id_and_timestamp():
         msg="hello", args=(), exc_info=None,
     )
     payload = json.loads(JsonFormatter().format(record))
-    assert payload["service_name"] == "fsu1bv2-betting-control"
+    assert payload["service_name"] == "fsu8-betting-control"
     assert payload["trace_id"] == "-"          # no request in scope
     assert payload["timestamp"]
     assert payload["severity"] == "INFO"

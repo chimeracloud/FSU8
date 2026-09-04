@@ -43,7 +43,7 @@ def test_ready_is_200_once_the_gateway_is_configured(client):
 
 def test_info_reports_identity_and_dependencies(client):
     body = client.get("/info").json()
-    assert body["service"] == "fsu1bv2-betting-control"
+    assert body["service"] == "fsu8-betting-control"
     assert body["phase"] == 1
     assert body["dependencies"] == ["fsu1b"]
     assert body["region"] == "europe-west2"
@@ -58,11 +58,11 @@ def test_metrics_is_prometheus_text(client):
     body = r.text
     # The shell spec names all five families explicitly.
     for metric in (
-        "bc_cpu_seconds_total",
-        "bc_memory_rss_bytes",
-        "bc_requests_total",
-        "bc_errors_total",
-        "bc_uptime_seconds",
+        "fsu8_cpu_seconds_total",
+        "fsu8_memory_rss_bytes",
+        "fsu8_requests_total",
+        "fsu8_errors_total",
+        "fsu8_uptime_seconds",
     ):
         assert metric in body, f"{metric} missing from /metrics"
 
@@ -73,14 +73,14 @@ def test_metrics_counts_requests(client):
     body = client.get("/metrics").text
     line = next(
         ln for ln in body.splitlines()
-        if ln.startswith("bc_requests_total ")
+        if ln.startswith("fsu8_requests_total ")
     )
     assert int(float(line.split()[1])) >= 2
 
 
 def test_status_is_a_human_summary(client):
     body = client.get("/status").json()
-    assert body["service"] == "fsu1bv2-betting-control"
+    assert body["service"] == "fsu8-betting-control"
     assert body["service_state"] == "stopped"
     assert body["uptime_s"] >= 0
 
@@ -110,7 +110,7 @@ def test_ready_503_is_not_counted_as_a_server_error(client):
     """A designed 503 must not inflate the error metric.
 
     /ready returns 503 while fsu1b_url is unset. Counting that would
-    make bc_errors_total climb on a healthy service and train the
+    make fsu8_errors_total climb on a healthy service and train the
     operator to ignore it.
     """
     replace_settings(fsu1b_url="")
@@ -125,7 +125,7 @@ def test_memory_rss_is_a_plausible_number(client):
     reported 73GB on a laptop and would have been invisible in prod."""
     line = next(
         ln for ln in client.get("/metrics").text.splitlines()
-        if ln.startswith("bc_memory_rss_bytes ")
+        if ln.startswith("fsu8_memory_rss_bytes ")
     )
     rss = float(line.split()[1])
     # A Python web process: comfortably over 8MB, nowhere near 8GB.

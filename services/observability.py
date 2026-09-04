@@ -122,39 +122,39 @@ def metrics() -> Response:
     rss_bytes = ru.ru_maxrss if sys.platform == "darwin" else ru.ru_maxrss * 1024
 
     lines = [
-        "# HELP bc_uptime_seconds Seconds since the service started.",
-        "# TYPE bc_uptime_seconds counter",
-        f"bc_uptime_seconds {time.time() - _START:.3f}",
-        "# HELP bc_cpu_seconds_total Process CPU time consumed.",
-        "# TYPE bc_cpu_seconds_total counter",
-        f"bc_cpu_seconds_total {ru.ru_utime + ru.ru_stime:.3f}",
-        "# HELP bc_memory_rss_bytes Peak resident set size.",
-        "# TYPE bc_memory_rss_bytes gauge",
-        f"bc_memory_rss_bytes {rss_bytes}",
-        "# HELP bc_requests_total HTTP requests handled.",
-        "# TYPE bc_requests_total counter",
-        f"bc_requests_total {app_state.request_count}",
-        "# HELP bc_errors_total HTTP responses with status >= 500.",
-        "# TYPE bc_errors_total counter",
-        f"bc_errors_total {app_state.error_count}",
-        "# HELP bc_requests_per_second Recent request rate (60s window).",
-        "# TYPE bc_requests_per_second gauge",
-        f"bc_requests_per_second {app_state.requests_per_s_recent():.3f}",
+        "# HELP fsu8_uptime_seconds Seconds since the service started.",
+        "# TYPE fsu8_uptime_seconds counter",
+        f"fsu8_uptime_seconds {time.time() - _START:.3f}",
+        "# HELP fsu8_cpu_seconds_total Process CPU time consumed.",
+        "# TYPE fsu8_cpu_seconds_total counter",
+        f"fsu8_cpu_seconds_total {ru.ru_utime + ru.ru_stime:.3f}",
+        "# HELP fsu8_memory_rss_bytes Peak resident set size.",
+        "# TYPE fsu8_memory_rss_bytes gauge",
+        f"fsu8_memory_rss_bytes {rss_bytes}",
+        "# HELP fsu8_requests_total HTTP requests handled.",
+        "# TYPE fsu8_requests_total counter",
+        f"fsu8_requests_total {app_state.request_count}",
+        "# HELP fsu8_errors_total HTTP responses with status >= 500.",
+        "# TYPE fsu8_errors_total counter",
+        f"fsu8_errors_total {app_state.error_count}",
+        "# HELP fsu8_requests_per_second Recent request rate (60s window).",
+        "# TYPE fsu8_requests_per_second gauge",
+        f"fsu8_requests_per_second {app_state.requests_per_s_recent():.3f}",
     ]
 
     p50 = app_state.latency_ms_p50()
     if p50 is not None:
         lines += [
-            "# HELP bc_request_latency_ms_p50 Median request latency.",
-            "# TYPE bc_request_latency_ms_p50 gauge",
-            f"bc_request_latency_ms_p50 {p50:.3f}",
+            "# HELP fsu8_request_latency_ms_p50 Median request latency.",
+            "# TYPE fsu8_request_latency_ms_p50 gauge",
+            f"fsu8_request_latency_ms_p50 {p50:.3f}",
         ]
     mx = app_state.latency_ms_max()
     if mx is not None:
         lines += [
-            "# HELP bc_request_latency_ms_max Slowest request observed.",
-            "# TYPE bc_request_latency_ms_max gauge",
-            f"bc_request_latency_ms_max {mx:.3f}",
+            "# HELP fsu8_request_latency_ms_max Slowest request observed.",
+            "# TYPE fsu8_request_latency_ms_max gauge",
+            f"fsu8_request_latency_ms_max {mx:.3f}",
         ]
 
     return Response(

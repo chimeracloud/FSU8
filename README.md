@@ -83,7 +83,7 @@ FSU1B *answers* is reported by the bet path, at the moment it matters.
 
 ## Configuration
 
-Settings live in `gs://chiops-betfair-recording/config/betting_control.json`
+Settings live in `gs://chiops-betfair-recording/config/fsu8.json`
 and are edited through `PUT /admin/config`. **Never environment
 variables** (CHI-POL-006) — env vars carry deploy-time identity only
 (`SERVICE_URL`, `GCP_PROJECT`, `BUILD_SHA`).
@@ -99,7 +99,7 @@ asserts that no tunable setting is readable from the environment.
 | `fsu1b_url` | `""` | The gateway. `/ready` is 503 until set |
 | `fsu1b_timeout_s` | `10.0` | Upstream call timeout |
 | `log_level` | `INFO` | Applied immediately on PUT |
-| `events_topic` | `chimera-events` | See the note below |
+| `events_topic` | `chimera-fsu8-events` | See the note below |
 
 ## Local development
 
@@ -108,12 +108,12 @@ python3.13 -m venv .venv.nosync
 source .venv.nosync/bin/activate
 pip install -r requirements-dev.txt
 
-export BC_DISABLE_GCP_IO=1     # short-circuits GCS + Pub/Sub
+export FSU8_DISABLE_GCP_IO=1     # short-circuits GCS + Pub/Sub
 uvicorn main:app --port 8080
 pytest -q
 ```
 
-`BC_DISABLE_GCP_IO` is set automatically by `tests/conftest.py`, before
+`FSU8_DISABLE_GCP_IO` is set automatically by `tests/conftest.py`, before
 any project module is imported. Without it the suite would write to the
 production config blob and the shared Source Manifest.
 
@@ -141,19 +141,45 @@ Push to `main` -> Cloud Build -> Cloud Run, driven by `cloudbuild.yaml`.
 There is no CORS middleware, deliberately — adding it would imply a
 browser origin that is not supposed to exist.
 
-## Open items requiring Charles
+## Naming
 
-1. **Cloud Run service name.** `fsu1bv2-betting-control` follows the
-   brief's `[repo]-[function]` convention. Confirm or shorten.
-2. **Service account `fsu1bv2-sa@chiops`** — needs `roles/run.invoker`
-   on `fsu1b` **only**, plus object read/write on the config bucket and
-   `roles/pubsub.publisher` on the events topic. Not created.
-3. **Pub/Sub topic `chimera-events` does not exist.** The convention in
-   chiops is per-service (`chimera-fsu1b-events`,
-   `chimera-fsu100v2-events`). Either create the shared topic or point
-   `events_topic` at a per-service one. Until then the publisher's stub
-   fallback logs envelopes to stdout and the admin SSE channel, so the
-   service runs either way.
+| | |
+|---|---|
+| GitHub repo | **`FSU8`** — uppercase, the org-wide convention |
+| Cloud Run | `fsu8-betting-control` |
+| Service account | `fsu8-sa@chiops.iam.gserviceaccount.com` |
+| Events topic | `chimera-fsu8-events` |
+| Config blob | `gs://chiops-betfair-recording/config/fsu8.json` |
+
+**Repo names are uppercase; GCP resource names are lowercase.** Cloud
+Run, service accounts, buckets and Pub/Sub topics do not accept
+uppercase. That is a platform constraint, not an inconsistency to
+tidy up.
+
+### Why FSU8 and not a version of FSU1B
+
+**FSU1B is the gateway; Control calls it.** Numbering Control as a
+version of FSU1B would say they are the same unit, when the entire
+architecture depends on them being separate — one holds the venue
+session, the other decides what gets sent to it. That separation is the
+fix for the session collisions, so collapsing it in the name would
+undo the reasoning.
+
+**Control is also not Betfair-specific.** It will fan out to BETDAQ,
+arbitrage bookmakers and prediction markets. Putting it in the 1-series
+would tie the platform's execution layer to one exchange permanently.
+
+**The 1-series is sources** — things that bring data in. Control sends
+instructions out. Different direction, different layer.
+
+### A note on the events topic
+
+The shell specification names a shared `chimera-events` topic. The
+convention actually in use in `chiops` is per-service
+(`chimera-fsu1b-events`, `chimera-fsu100v2-events`), and this service
+follows it with `chimera-fsu8-events`. Consolidating onto a shared
+topic is a platform decision, not one to take while building a
+service. The discrepancy is recorded here rather than resolved.
 
 ## What the history taught this design
 
