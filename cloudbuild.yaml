@@ -15,11 +15,16 @@
 # Do not create this trigger through the wizard.
 # ────────────────────────────────────────────────────────────────────
 
+# NOTE: the image path is written out in full at each use rather than
+# held in a substitution. A substitution DEFAULT that itself contains
+# ${PROJECT_ID} is not expanded by `gcloud builds submit` — it only
+# resolves in trigger context — and the build fails with
+# "could not parse reference". FSU1B's cloudbuild.yaml has the same
+# latent shape and would fail the same way if ever run manually.
 substitutions:
   _REGION: europe-west2
   _SERVICE: fsu8-betting-control
   _SA: fsu8-sa@chiops.iam.gserviceaccount.com
-  _IMAGE: europe-west2-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/fsu8
 
 steps:
   - id: test
@@ -33,15 +38,15 @@ steps:
 
   - id: build
     name: gcr.io/cloud-builders/docker
-    args: [build, -t, "${_IMAGE}:${SHORT_SHA}", -t, "${_IMAGE}:main", .]
+    args: [build, -t, "europe-west2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/fsu8:${SHORT_SHA}", -t, "europe-west2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/fsu8:main", .]
 
   - id: push-sha
     name: gcr.io/cloud-builders/docker
-    args: [push, "${_IMAGE}:${SHORT_SHA}"]
+    args: [push, "europe-west2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/fsu8:${SHORT_SHA}"]
 
   - id: push-main
     name: gcr.io/cloud-builders/docker
-    args: [push, "${_IMAGE}:main"]
+    args: [push, "europe-west2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/fsu8:main"]
 
   - id: deploy
     name: gcr.io/google.com/cloudsdktool/cloud-sdk
@@ -50,7 +55,7 @@ steps:
       - run
       - deploy
       - ${_SERVICE}
-      - --image=${_IMAGE}:${SHORT_SHA}
+      - --image=europe-west2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/fsu8:${SHORT_SHA}
       - --region=${_REGION}
       - --project=${PROJECT_ID}
       - --service-account=${_SA}
@@ -77,8 +82,8 @@ steps:
       - --update-env-vars=GCP_PROJECT=${PROJECT_ID},BUILD_SHA=$COMMIT_SHA
 
 images:
-  - ${_IMAGE}:${SHORT_SHA}
-  - ${_IMAGE}:main
+  - europe-west2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/fsu8:${SHORT_SHA}
+  - europe-west2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/fsu8:main
 
 options:
   logging: CLOUD_LOGGING_ONLY
