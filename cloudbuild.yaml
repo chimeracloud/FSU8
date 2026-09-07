@@ -13,6 +13,16 @@
 # divergence because the build went green either way.
 #
 # Do not create this trigger through the wizard.
+#
+# 2026-09-07: it WAS created through the wizard (inline build,
+# filename: None, deploy step `run services update --image --labels`).
+# Repointed at this file, then verified the hard way: max-instances was
+# deliberately drifted to 5 and cpu-throttling to true, the trigger was
+# fired, and both came back to 1 and false. A green build alone proves
+# nothing here, because `services update` PRESERVES existing flags — a
+# correct-looking service can sit behind a pipeline that is not
+# maintaining it. That is precisely how FSU1B looked correct for three
+# months while nothing enforced it.
 # ────────────────────────────────────────────────────────────────────
 
 # NOTE: the image path is written out in full at each use rather than
